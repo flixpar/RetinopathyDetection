@@ -6,16 +6,22 @@ import tqdm
 def main():
 
 	df = pd.read_csv("../data/ann.csv")
-	data = df.values
+	df = df.dropna()
+	df = df.astype(np.int)
+
 	N, _ = data.shape
+
+	PERSONCOL = 0
+	IMAGECOL = 1
+	LABELCOL = 2
 
 	train_size, test_size, val_size = 0.7, 0.15, 0.15
 
-	person_groups = [np.argwhere(data[:,0] == p).flatten().tolist() for p in range(data[:,0].max()+3)]
+	person_groups = [np.argwhere(data[:,PERSONCOL] == p).flatten().tolist() for p in range(data[:,PERSONCOL].max()+3)]
 	person_groups = [g for g in person_groups if g]
 
 	min_dist = np.inf
-	z0 = np.mean(data[:, 4])
+	z0 = np.mean(data[:, LABELCOL])
 
 	best_train_ind = None
 	best_test_ind  = None
@@ -47,13 +53,13 @@ def main():
 		r = len(val_split_ind) / N
 		d3 = abs(r - val_size)
 
-		z = np.mean(data[train_split_ind, 4])
+		z = np.mean(data[train_split_ind, LABELCOL])
 		d4 = abs(z - z0)
 
-		z = np.mean(data[test_split_ind, 4])
+		z = np.mean(data[test_split_ind, LABELCOL])
 		d5 = abs(z - z0)
 
-		z = np.mean(data[val_split_ind, 4])
+		z = np.mean(data[val_split_ind, LABELCOL])
 		d6 = abs(z - z0)
 
 		r1 = len(test_split_ind) / N
@@ -67,7 +73,7 @@ def main():
 			best_train_ind = train_split_ind
 			best_test_ind  = test_split_ind
 			best_val_ind   = val_split_ind
-			s = f"{min_dist:.4f}: {d1:.3f} {d2:.3f} {d3:.3f} | {d7:.3f} | {d4:.3f} {d5:.3f} {d6:.3f}"
+			s = f"{min_dist:.4f}: (size) {d1:.3f} {d2:.3f} {d3:.3f} | (|test-val|) {d7:.3f} | (labels) {d4:.3f} {d5:.3f} {d6:.3f}"
 			tqdm.tqdm.write(s)
 
 	print(best_train_ind)

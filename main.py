@@ -6,6 +6,7 @@ from sklearn import metrics
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch.utils.data.dataloader import default_collate
 
 from util.logger import Logger
 from util.misc import (
@@ -43,16 +44,21 @@ def main():
 	train_sampler = get_train_sampler(args, train_dataset)
 	shuffle = (train_sampler is None)
 
+	# collate batch
+	def safe_collate(batch):
+	    batch = list(filter (lambda x:x is not None, batch))
+	    return default_collate(batch)
+
 	# dataloaders
 
 	train_loader = torch.utils.data.DataLoader(train_dataset, shuffle=shuffle, sampler=train_sampler,
-		batch_size=args.batch_size, num_workers=args.workers, pin_memory=True)
+		batch_size=args.batch_size, collate_fn=safe_collate, num_workers=args.workers, pin_memory=True)
 
 	train_static_loader = torch.utils.data.DataLoader(train_static_dataset, shuffle=False,
-		batch_size=1, num_workers=args.workers, pin_memory=True)
+		batch_size=1, collate_fn=safe_collate, num_workers=args.workers, pin_memory=True)
 
 	val_loader = torch.utils.data.DataLoader(val_dataset, shuffle=False, batch_size=1,
-		num_workers=args.workers, pin_memory=True)
+		collate_fn=safe_collate, num_workers=args.workers, pin_memory=True)
 
 	# model
 	model = get_model(args)
@@ -76,9 +82,9 @@ def main():
 		score = evaluate(model, val_loader, loss_func, logger, epoch, "val")
 		logger.save()
 		if args.save_freq == "best" and score > max_score:
-			logger.save_model(model.module, epoch)
+			logger.save_model(model, epoch)
 		elif args.save_freq is not None and epoch % args.save_freq == 0:	
-			logger.save_model(model.module, epoch)
+			logger.save_model(model, epoch)
 		if score > max_score:
 			max_score = score
 		scheduler.step()

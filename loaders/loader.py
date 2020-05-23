@@ -29,46 +29,26 @@ class RetinaImageDataset(torch.utils.data.Dataset):
 		if self.debug: self.n_samples = 128 if n_samples is None else min([128, n_samples])
 
 		if self.split == "train":
-			if args.include_laser: self.data = pd.read_csv(os.path.join(args.datapath, "train_ann.csv")).values
-			else:                  self.data = pd.read_csv(os.path.join(args.datapath, "train_ann_nolaser.csv")).values
+			self.data = pd.read_csv(os.path.join(self.base_path, "ann", "train_ann.csv")).values
 		elif self.split == "val":
-			if args.include_laser: self.data = pd.read_csv(os.path.join(args.datapath, "val_ann.csv")).values
-			else:                  self.data = pd.read_csv(os.path.join(args.datapath, "val_ann_nolaser.csv")).values
+			self.data = pd.read_csv(os.path.join(self.base_path, "ann", "val_ann.csv")).values
 		elif self.split == "test":
-			if args.include_laser: self.data = pd.read_csv(os.path.join(args.datapath, "test_ann.csv")).values
-			else:                  self.data = pd.read_csv(os.path.join(args.datapath, "test_ann_nolaser.csv")).values
-		elif self.split == "new":
-			self.data = pd.read_csv(os.path.join(args.datapath, "new_ann.csv")).values
-		elif self.split == "testnew":
-			if args.include_laser: 
-				d1 = pd.read_csv(os.path.join(args.datapath, "test_ann.csv"))
-				d2 = pd.read_csv(os.path.join(args.datapath, "new_ann.csv"))
-			else:
-				d1 = pd.read_csv(os.path.join(args.datapath, "test_ann_nolaser.csv"))
-				d2 = pd.read_csv(os.path.join(args.datapath, "new_ann.csv"))
-			self.data = pd.concat([d1, d2]).values
+			self.data = pd.read_csv(os.path.join(self.base_path, "ann", "test_ann.csv")).values
 		elif self.split == "trainval":
-			if args.include_laser: 
-				d1 = pd.read_csv(os.path.join(args.datapath, "train_ann.csv"))
-				d2 = pd.read_csv(os.path.join(args.datapath, "val_ann.csv"))
-			else:
-				d1 = pd.read_csv(os.path.join(args.datapath, "train_ann_nolaser.csv"))
-				d2 = pd.read_csv(os.path.join(args.datapath, "val_ann_nolaser.csv"))
+			d1 = pd.read_csv(os.path.join(self.base_path, "ann", "train_ann.csv"))
+			d2 = pd.read_csv(os.path.join(self.base_path, "ann", "val_ann.csv"))
 			self.data = pd.concat([d1, d2]).values
 		elif self.split == "all":
-			if args.include_laser: 
-				d1 = pd.read_csv(os.path.join(args.datapath, "train_ann.csv"))
-				d2 = pd.read_csv(os.path.join(args.datapath, "val_ann.csv"))
-				d3 = pd.read_csv(os.path.join(args.datapath, "test_ann.csv"))
-				d4 = pd.read_csv(os.path.join(args.datapath, "new_ann.csv"))
-			else:
-				d1 = pd.read_csv(os.path.join(args.datapath, "train_ann_nolaser.csv"))
-				d2 = pd.read_csv(os.path.join(args.datapath, "val_ann_nolaser.csv"))
-				d3 = pd.read_csv(os.path.join(args.datapath, "test_ann_nolaser.csv"))
-				d4 = pd.read_csv(os.path.join(args.datapath, "new_ann.csv"))
-			self.data = pd.concat([d1, d2, d3, d4]).values
+			d1 = pd.read_csv(os.path.join(self.base_path, "ann", "train_ann.csv"))
+			d2 = pd.read_csv(os.path.join(self.base_path, "ann", "val_ann.csv"))
+			d3 = pd.read_csv(os.path.join(self.base_path, "ann", "test_ann.csv"))
+			self.data = pd.concat([d1, d2, d3]).values
 		else:
 			raise ValueError("Invalid dataset split.")
+
+		# check if images are present
+		found = [os.path.exists(os.path.join(self.base_path, "retina", f"{file_num}.tif")) for file_num in self.data[:,1]]
+		self.data = self.data[found,:]
 
 		# subsampling
 		if self.n_samples is not None and self.n_samples < len(self.data):
@@ -76,7 +56,7 @@ class RetinaImageDataset(torch.utils.data.Dataset):
 			self.data = self.data[ind]
 
 		# class and example weighting
-		labels = torch.tensor(self.data[:,4].astype(np.float))
+		labels = torch.tensor(self.data[:,2].astype(np.float32))
 		self.class_weights = [1-labels.mean(), labels.mean()]
 		self.class_weights = torch.tensor(self.class_weights)
 		self.example_weights = torch.zeros(len(self.data), dtype=torch.float32)
@@ -90,10 +70,12 @@ class RetinaImageDataset(torch.utils.data.Dataset):
 
 	def __getitem__(self, index):
 
-		person, eye, quality, file_num, seafan, laser = self.data[index]
+		person, file_num, seafan = self.data[index]
 
-		fn = os.path.join(self.base_path, "imgs", f"{file_num}.tif")
+		fn = os.path.join(self.base_path, "retina", f"{file_num}.tif")
 		img = cv2.imread(fn)
+
+		if img is None: return None
 
 		if self.resize is not None:
 			img = self.resize(image=img)["image"]

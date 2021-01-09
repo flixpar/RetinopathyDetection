@@ -64,8 +64,8 @@ class RetinaImageDataset(torch.utils.data.Dataset):
 		self.example_weights[labels == 1] = self.class_weights[1]
 
 		# set the image normalization
-                self.img_mean = [0.0,  0.25575074, 0.22988809]
-                self.img_std  = [1e-5, 0.02665999, 0.02061643] 
+		self.img_mean = [0.06898253, 0.17419075, 0.16167488]
+		self.img_std  = [0.06259116, 0.09672542, 0.10255357]
 		self.normalization = tfms.Normalize(mean=self.img_mean, std=self.img_std)
 
 	def __getitem__(self, index):

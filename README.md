@@ -1,3 +1,3 @@
 # Sickle Cell Retinopathy Detection
 
-Full title: Development of a machine learning algorithm for detection of proliferative sickle cell retinopathy from ultra-widefield fundus photography
+Code for the paper: ["Deep Learning Detection of Sea Fan Neovascularization From Ultra-Widefield Color Fundus Photographs of Patients With Sickle Cell Hemoglobinopathy"](https://jamanetwork.com/journals/jamaophthalmology/article-abstract/277465)

@@ -23,7 +23,7 @@ import matplotlib
 matplotlib.use("agg")
 import matplotlib.pyplot as plt
 plt.style.use("seaborn-paper") # alt: seaborn-darkgrid
-import matplotlib2tikz
+import tikzplotlib
 
 import warnings
 warnings.simplefilter("ignore")
@@ -162,19 +162,19 @@ def create_plots(targets, preds, folder_path):
 
 	sensitivity_specificity_curve(targets, preds)
 	plt.savefig(os.path.join(folder_path, "sensitivity_specificity.png"))
-	matplotlib2tikz.save(os.path.join(folder_path, "sensitivity_specificity.tex"))
+	tikzplotlib.save(os.path.join(folder_path, "sensitivity_specificity.tex"))
 	plt.clf()
 	plt.close()
 
 	precision_recall_curve(targets, preds)
 	plt.savefig(os.path.join(folder_path, "precision_recall.png"))
-	matplotlib2tikz.save(os.path.join(folder_path, "precision_recall.tex"))
+	tikzplotlib.save(os.path.join(folder_path, "precision_recall.tex"))
 	plt.clf()
 	plt.close()
 
 	roc_curve(targets, preds)
 	plt.savefig(os.path.join(folder_path, "roc.png"))
-	matplotlib2tikz.save(os.path.join(folder_path, "roc.tex"))
+	tikzplotlib.save(os.path.join(folder_path, "roc.tex"))
 	plt.clf()
 	plt.close()
 
@@ -271,7 +271,7 @@ def confusion(targets, preds, folder_path):
 
 	fn = os.path.join(folder_path, "cfm.png")
 	plt.savefig(fn, dpi=300)
-	matplotlib2tikz.save(os.path.join(folder_path, "cfm.tex"))
+	tikzplotlib.save(os.path.join(folder_path, "cfm.tex"))
 
 	plt.clf()
 	plt.close()

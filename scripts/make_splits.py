@@ -9,13 +9,15 @@ def main():
 	df = df.dropna()
 	df = df.astype(np.int)
 
+	data = df.values
+
 	N, _ = data.shape
 
 	PERSONCOL = 0
 	IMAGECOL = 1
 	LABELCOL = 2
 
-	train_size, test_size, val_size = 0.7, 0.15, 0.15
+	train_size, test_size, val_size = 0.70, 0.20, 0.10
 
 	person_groups = [np.argwhere(data[:,PERSONCOL] == p).flatten().tolist() for p in range(data[:,PERSONCOL].max()+3)]
 	person_groups = [g for g in person_groups if g]
@@ -64,7 +66,7 @@ def main():
 
 		r1 = len(test_split_ind) / N
 		r2 = len(val_split_ind) / N
-		d7 = abs(r1 - r2)
+		d7 = 0 # abs(r1 - r2)
 
 		d = 2*d1 + d2 + d3 + d4 + d5 + d6 + 5*d7
 
